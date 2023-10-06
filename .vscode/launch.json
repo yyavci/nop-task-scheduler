@@ -9,8 +9,8 @@
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "cwd": "${workspaceFolder}",
-            "program": "${workspaceFolder}/cmd/task-scheduler/main.go"
+            "cwd": "${workspaceFolder}/src",
+            "program": "${workspaceFolder}/src/cmd/task-scheduler/main.go"
         }
     ]
 }
