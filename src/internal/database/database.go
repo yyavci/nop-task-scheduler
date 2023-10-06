@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"os"
 
@@ -14,7 +15,14 @@ func CheckDatabaseConnection(appConfig config.AppConfig) (*sql.DB, error) {
 
 	fmt.Println("checking database connection...")
 
-	db, err := sql.Open("mssql", os.Getenv("CONN_STR"))
+	connStr := os.Getenv("CONN_STR")
+
+	if len(connStr) == 0 {
+		fmt.Printf("set CONN_STR environment variable first!\n")
+		return nil, errors.New("connection string is not set")
+	}
+
+	db, err := sql.Open("mssql", connStr)
 	if err != nil {
 		fmt.Printf("Error occured opening database connection! Err:%s\n", err)
 		return nil, err
