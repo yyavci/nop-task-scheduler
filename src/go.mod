@@ -1,4 +1,4 @@
-module nop-task-scheduler
+module github.com/yyavci/nop-task-scheduler
 
 go 1.21.1
 

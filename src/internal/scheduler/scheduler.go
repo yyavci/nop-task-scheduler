@@ -2,8 +2,9 @@ package scheduler
 
 import (
 	"fmt"
-	"nop-task-scheduler/pkg/task"
 	"time"
+
+	"github.com/yyavci/nop-task-scheduler/internal/task"
 
 	"github.com/go-co-op/gocron"
 )

@@ -2,11 +2,12 @@ package app
 
 import (
 	"fmt"
-	"nop-task-scheduler/pkg/config"
-	"nop-task-scheduler/pkg/customer"
-	"nop-task-scheduler/pkg/database"
-	"nop-task-scheduler/pkg/scheduler"
-	"nop-task-scheduler/pkg/task"
+
+	"github.com/yyavci/nop-task-scheduler/internal/config"
+	"github.com/yyavci/nop-task-scheduler/internal/customer"
+	"github.com/yyavci/nop-task-scheduler/internal/database"
+	"github.com/yyavci/nop-task-scheduler/internal/scheduler"
+	"github.com/yyavci/nop-task-scheduler/internal/task"
 
 	"github.com/go-co-op/gocron"
 )

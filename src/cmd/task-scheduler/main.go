@@ -1,7 +1,7 @@
 package main
 
 import (
-	"nop-task-scheduler/pkg/app"
+	"github.com/yyavci/nop-task-scheduler/internal/app"
 )
 
 func main() {

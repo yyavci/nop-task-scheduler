@@ -3,8 +3,9 @@ package database
 import (
 	"database/sql"
 	"fmt"
-	"nop-task-scheduler/pkg/config"
 	"os"
+
+	"github.com/yyavci/nop-task-scheduler/internal/config"
 
 	_ "github.com/microsoft/go-mssqldb"
 )
