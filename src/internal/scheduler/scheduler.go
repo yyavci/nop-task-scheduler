@@ -18,7 +18,7 @@ func InitScheduler(tasks []task.ScheduleTask) (*gocron.Scheduler, error) {
 	for i := 0; i < len(tasks); i++ {
 		_, err := sch.Cron(tasks[i].CronExpression).Do(task.DoTask, tasks[i])
 		if err != nil {
-			fmt.Printf("Cannot run task! taskId:%d Err:%s\n", tasks[i].Id, err)
+			fmt.Printf("Cannot run task! taskId:%d Err:%+v\n", tasks[i].Id, err)
 			return nil, err
 		}
 	}

@@ -24,13 +24,15 @@ func CheckDatabaseConnection(appConfig config.AppConfig) (*sql.DB, error) {
 
 	db, err := sql.Open("mssql", connStr)
 	if err != nil {
-		fmt.Printf("Error occured opening database connection! Err:%s\n", err)
+		fmt.Printf("Error occured opening database connection! Err:%+v\n", err)
 		return nil, err
 	}
-	//defer database.Close()
+	
+	defer db.Close()
+
 	err = db.Ping()
 	if err != nil {
-		fmt.Printf("cannot connect to database! Err:%s\n", err)
+		fmt.Printf("cannot connect to database! Err:%+v\n", err)
 		return nil, err
 	}
 

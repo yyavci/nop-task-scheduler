@@ -19,7 +19,7 @@ func GetScheduleTasks(database *sql.DB) ([]ScheduleTask, error) {
 
 	rows, err := database.Query("SELECT Id , Name , Enabled FROM ScheduleTask")
 	if err != nil {
-		fmt.Printf("Cannot get schedule tasks! Err:%s\n", err)
+		fmt.Printf("Cannot get schedule tasks! Err:%+v\n", err)
 		return nil, err
 	}
 	var scheduleTasks []ScheduleTask
@@ -27,10 +27,10 @@ func GetScheduleTasks(database *sql.DB) ([]ScheduleTask, error) {
 	for rows.Next() {
 		var task ScheduleTask
 		if err := rows.Scan(&task.Id, &task.Name, &task.Enabled); err != nil {
-			fmt.Printf("Cannot get schedule tasks! Err:%s\n", err)
+			fmt.Printf("Cannot get schedule tasks! Err:%+v\n", err)
 			return nil, err
 		}
-		task.CronExpression = "*/1 * * * *"
+		task.CronExpression = "*/1 * * * *" // TODO get it from database
 		scheduleTasks = append(scheduleTasks, task)
 
 	}

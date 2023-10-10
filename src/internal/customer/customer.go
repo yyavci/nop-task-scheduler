@@ -19,7 +19,7 @@ func GetScheduleTaskCustomer(database *sql.DB, systemName string) (*Customer, er
 	row := database.QueryRow("SELECT Id,SystemName FROM Customer WHERE SystemName = ?", systemName)
 	if err := row.Scan(&scheduleTaskCustomer.Id, &scheduleTaskCustomer.SystemName); err != nil {
 		if err == sql.ErrNoRows {
-			fmt.Printf("Cannot get schedule task customer! Err:%s\n", err)
+			fmt.Printf("Cannot get schedule task customer! Err:%+v\n", err)
 			return nil, err
 		}
 	}
