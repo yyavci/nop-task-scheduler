@@ -2,6 +2,7 @@ package http
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -16,6 +17,16 @@ type HttpResponse struct {
 func PostJsonRequest(url string, json string) (HttpResponse, error) {
 	fmt.Printf("sending http post request with json data...\n")
 	fmt.Printf("url:%s\n", url)
+
+	if len(url) == 0 {
+		fmt.Printf("url is empty! \n")
+		return HttpResponse{}, errors.New("url is empty")
+	}
+	
+	if len(json) == 0 {
+		fmt.Printf("json is empty! \n")
+		return HttpResponse{}, errors.New("json is empty")
+	}
 
 	body := []byte(json)
 
