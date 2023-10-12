@@ -9,7 +9,8 @@ import (
 )
 
 type AppConfig struct {
-	StoreUrl string
+	StoreUrl         string
+	ConnectionString string
 }
 
 func ReadConfiguration() (*AppConfig, error) {

@@ -18,6 +18,10 @@ func CheckDatabaseConnection(appConfig config.AppConfig) (*sql.DB, error) {
 	connStr := os.Getenv("CONN_STR")
 
 	if len(connStr) == 0 {
+		connStr = appConfig.ConnectionString
+	}
+
+	if len(connStr) == 0 {
 		fmt.Printf("set CONN_STR environment variable first!\n")
 		return nil, errors.New("connection string is not set")
 	}

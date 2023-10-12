@@ -1,3 +1,4 @@
 {
-    "StoreUrl":"localhost:81"
+    "StoreUrl":"localhost:81",
+    "ConnectionString":"Server=myServerAddress;Database=myDataBase;User Id=myUsername;Password=myPassword;"
 }
