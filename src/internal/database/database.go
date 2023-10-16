@@ -32,7 +32,7 @@ func CheckDatabaseConnection(appConfig config.AppConfig) (*sql.DB, error) {
 		return nil, err
 	}
 	
-	defer db.Close()
+	//defer db.Close()
 
 	err = db.Ping()
 	if err != nil {

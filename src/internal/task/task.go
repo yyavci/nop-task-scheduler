@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	conf "github.com/yyavci/nop-task-scheduler/internal/config"
+	http "github.com/yyavci/nop-task-scheduler/internal/http"
 )
 
 type ScheduleTask struct {
@@ -48,5 +49,13 @@ func DoTask(task ScheduleTask, config conf.AppConfig) {
 	fmt.Printf("[%d]'%s' task started. \n", task.Id, task.Name)
 
 	fmt.Println(config.StoreUrl)
+	response, err := http.PostJsonRequest(config.StoreUrl+"/ScheduleTask/Run", "{}")
+
+	if err != nil {
+		fmt.Printf("error posting request! err:%s\n", err.Error())
+		return
+	}
+
+	fmt.Printf("response status-code:%d status:%s", response.StatusCode, response.Status)
 
 }
