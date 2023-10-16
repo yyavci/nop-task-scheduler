@@ -1,11 +1,11 @@
 package task
 
 import (
-	"database/sql"
 	"errors"
 	"fmt"
-	conf "github.com/yyavci/nop-task-scheduler/internal/config"
-	http "github.com/yyavci/nop-task-scheduler/internal/http"
+	"github.com/yyavci/nop-task-scheduler/internal/database"
+	"github.com/yyavci/nop-task-scheduler/internal/config"
+	"github.com/yyavci/nop-task-scheduler/internal/http"
 )
 
 type ScheduleTask struct {
@@ -15,11 +15,17 @@ type ScheduleTask struct {
 	CronExpression string
 }
 
-func GetScheduleTasks(database *sql.DB) ([]ScheduleTask, error) {
+func GetScheduleTasks() ([]ScheduleTask, error) {
 
 	fmt.Println("getting schedule tasks...")
 
-	rows, err := database.Query("SELECT Id , Name , Enabled FROM ScheduleTask")
+	db, err := database.OpenConnection()
+	if err != nil {
+		fmt.Printf("Cannot open db connection! Err:%+v\n", err)
+		return nil, err
+	}
+
+	rows, err := db.Query("SELECT Id , Name , Enabled FROM ScheduleTask")
 	if err != nil {
 		fmt.Printf("Cannot get schedule tasks! Err:%+v\n", err)
 		return nil, err
@@ -42,14 +48,16 @@ func GetScheduleTasks(database *sql.DB) ([]ScheduleTask, error) {
 		return nil, errors.New("schedule task count is 0")
 	}
 
+	defer database.CloseConnection(db)
+
 	return scheduleTasks, nil
 }
 
-func DoTask(task ScheduleTask, config conf.AppConfig) {
+func DoTask(task ScheduleTask, conf config.AppConfig) {
 	fmt.Printf("[%d]'%s' task started. \n", task.Id, task.Name)
 
-	fmt.Println(config.StoreUrl)
-	response, err := http.PostJsonRequest(config.StoreUrl+"/ScheduleTask/Run", "{}")
+	fmt.Println(conf.StoreUrl)
+	response, err := http.PostJsonRequest(conf.StoreUrl+"/ScheduleTask/Run", "{}")
 
 	if err != nil {
 		fmt.Printf("error posting request! err:%s\n", err.Error())

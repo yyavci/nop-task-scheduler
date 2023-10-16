@@ -22,18 +22,18 @@ func Run() {
 		panic(err)
 	}
 
-	db, err := database.CheckDatabaseConnection(*conf)
+	err = database.Init(*conf)
 	if err != nil {
 		panic(err)
 	}
 
-	cust, err := customer.GetScheduleTaskCustomer(db, "BackgroundTask")
+	cust, err := customer.GetScheduleTaskCustomer("BackgroundTask")
 	if err != nil {
 		panic(err)
 	}
 	fmt.Printf("schedule task customerId:%d\n", cust.Id)
 
-	tasks, err := task.GetScheduleTasks(db)
+	tasks, err := task.GetScheduleTasks()
 	if err != nil {
 		panic(err)
 	}
