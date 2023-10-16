@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	conf "github.com/yyavci/nop-task-scheduler/internal/config"
 )
 
 type ScheduleTask struct {
@@ -43,6 +44,9 @@ func GetScheduleTasks(database *sql.DB) ([]ScheduleTask, error) {
 	return scheduleTasks, nil
 }
 
-func DoTask(task ScheduleTask) {
+func DoTask(task ScheduleTask, config conf.AppConfig) {
 	fmt.Printf("[%d]'%s' task started. \n", task.Id, task.Name)
+
+	fmt.Println(config.StoreUrl)
+
 }

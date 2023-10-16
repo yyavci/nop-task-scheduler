@@ -38,7 +38,7 @@ func Run() {
 		panic(err)
 	}
 
-	sch, err := scheduler.InitScheduler(tasks)
+	sch, err := scheduler.InitScheduler(tasks, *conf)
 	if err != nil {
 		panic(err)
 	}
