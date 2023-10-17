@@ -17,6 +17,8 @@ func GetScheduleTaskCustomer(systemName string) (*Customer, error) {
 	var scheduleTaskCustomer Customer
 
 	db, err := database.OpenConnection()
+	defer database.CloseConnection(db)
+
 	if err != nil {
 		fmt.Printf("Cannot open db connection! Err:%+v\n", err)
 		return nil, err
@@ -31,8 +33,5 @@ func GetScheduleTaskCustomer(systemName string) (*Customer, error) {
 			return nil, err
 		}
 	}
-	
-	defer database.CloseConnection(db)
-
 	return &scheduleTaskCustomer, nil
 }

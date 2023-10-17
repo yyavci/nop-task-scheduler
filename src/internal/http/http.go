@@ -11,7 +11,7 @@ import (
 type HttpResponse struct {
 	Status     string
 	StatusCode int
-	Data       any
+	Data       string
 }
 
 func PostJsonRequest(url string, json string) (HttpResponse, error) {

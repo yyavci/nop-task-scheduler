@@ -1,10 +1,12 @@
 package task
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/yyavci/nop-task-scheduler/internal/database"
+
 	"github.com/yyavci/nop-task-scheduler/internal/config"
+	"github.com/yyavci/nop-task-scheduler/internal/database"
 	"github.com/yyavci/nop-task-scheduler/internal/http"
 )
 
@@ -15,11 +17,17 @@ type ScheduleTask struct {
 	CronExpression string
 }
 
+type ScheduleTaskRunResponse struct {
+	Success bool
+	Message string
+}
+
 func GetScheduleTasks() ([]ScheduleTask, error) {
 
 	fmt.Println("getting schedule tasks...")
 
 	db, err := database.OpenConnection()
+	defer database.CloseConnection(db)
 	if err != nil {
 		fmt.Printf("Cannot open db connection! Err:%+v\n", err)
 		return nil, err
@@ -47,23 +55,83 @@ func GetScheduleTasks() ([]ScheduleTask, error) {
 		fmt.Printf("schedule task count is 0!\n")
 		return nil, errors.New("schedule task count is 0")
 	}
-
-	defer database.CloseConnection(db)
-
 	return scheduleTasks, nil
 }
 
 func DoTask(task ScheduleTask, conf config.AppConfig) {
 	fmt.Printf("[%d]'%s' task started. \n", task.Id, task.Name)
 
+	err := UpdateTask(task.Id, true, false)
+	if err != nil {
+		fmt.Printf("error updating task! err:%+v\n", err)
+		UpdateTask(task.Id, false, false)
+		return
+	}
+
 	fmt.Println(conf.StoreUrl)
 	response, err := http.PostJsonRequest(conf.StoreUrl+"/ScheduleTask/Run", "{}")
 
 	if err != nil {
-		fmt.Printf("error posting request! err:%s\n", err.Error())
+		fmt.Printf("error posting request! err:%+v\n", err)
+		UpdateTask(task.Id, false, false)
+		return
+	}
+	fmt.Printf("response status-code:%d status:%s", response.StatusCode, response.Status)
+
+	if response.StatusCode < 200 || response.StatusCode > 400 {
+		fmt.Printf("error posting request! err:%s\n", errors.New("response error"))
+		UpdateTask(task.Id, false, false)
 		return
 	}
 
-	fmt.Printf("response status-code:%d status:%s", response.StatusCode, response.Status)
+	var taskResponse ScheduleTaskRunResponse
 
+	err = json.Unmarshal([]byte(response.Data), &taskResponse)
+
+	if err != nil {
+		fmt.Printf("cannot parse response! err:%+v\n", err)
+		UpdateTask(task.Id, false, false)
+		return
+	}
+
+	if !taskResponse.Success {
+		fmt.Printf("failed response! message:%s\n", taskResponse.Message)
+		UpdateTask(task.Id, false, false)
+		return
+	}
+
+	UpdateTask(task.Id, false, true)
+
+}
+
+func UpdateTask(id int, start bool, ok bool) error {
+
+	if id == 0 {
+		return errors.New("id cannot be zero")
+	}
+
+	db, err := database.OpenConnection()
+	defer database.CloseConnection(db)
+	if err != nil {
+		fmt.Printf("Cannot open db connection! Err:%+v\n", err)
+		return err
+	}
+
+	whereClause := "WHERE Id = ?"
+
+	var query string = ""
+
+	if start {
+		query = "UPDATE ScheduleTask SET LastStartUtc = GETUTCDATE()"
+	} else {
+		query = "UPDATE ScheduleTask SET LastEndUtc = GETUTCDATE()"
+		if ok {
+			query += " LastSuccessDate = GETUTCDATE()"
+		}
+	}
+	query += whereClause
+
+	_, err = db.Exec(query, id)
+
+	return err
 }
