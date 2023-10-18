@@ -21,6 +21,9 @@ type ScheduleTaskRunResponse struct {
 	Success bool
 	Message string
 }
+type ScheduleTaskRunRequest struct {
+	TaskId int
+}
 
 func GetScheduleTasks() ([]ScheduleTask, error) {
 
@@ -68,8 +71,17 @@ func DoTask(task ScheduleTask, conf config.AppConfig) {
 		return
 	}
 
+	request := &ScheduleTaskRunRequest{TaskId: task.Id}
+
+	jsonStr, err := json.Marshal(request)
+	if err != nil {
+		fmt.Printf("error parsing request! err:%+v\n", err)
+		UpdateTask(task.Id, false, false)
+		return
+	}
+
 	fmt.Println(conf.StoreUrl)
-	response, err := http.PostJsonRequest(conf.StoreUrl+"/ScheduleTask/Run", "{}")
+	response, err := http.PostJsonRequest(conf.StoreUrl+"/ScheduleTask/Run", string(jsonStr))
 
 	if err != nil {
 		fmt.Printf("error posting request! err:%+v\n", err)

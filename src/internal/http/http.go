@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 )
 
 type HttpResponse struct {
@@ -22,7 +23,7 @@ func PostJsonRequest(url string, json string) (HttpResponse, error) {
 		fmt.Printf("url is empty! \n")
 		return HttpResponse{}, errors.New("url is empty")
 	}
-	
+
 	if len(json) == 0 {
 		fmt.Printf("json is empty! \n")
 		return HttpResponse{}, errors.New("json is empty")
@@ -39,7 +40,7 @@ func PostJsonRequest(url string, json string) (HttpResponse, error) {
 
 	req.Header.Add("Content-Type", "application/json")
 
-	client := &http.Client{}
+	client := &http.Client{Timeout: 10 * time.Minute}
 	res, err := client.Do(req)
 	if err != nil {
 		fmt.Printf("Error sending post request! Err:%+v\n", err)
