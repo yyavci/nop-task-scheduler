@@ -32,11 +32,10 @@ func GetScheduleTasks() ([]ScheduleTask, error) {
 	db, err := database.OpenConnection()
 	defer database.CloseConnection(db)
 	if err != nil {
-		fmt.Printf("Cannot open db connection! Err:%+v\n", err)
 		return nil, err
 	}
 
-	rows, err := db.Query("SELECT Id , Name , Enabled FROM ScheduleTask")
+	rows, err := db.Query("SELECT Id , Name , Enabled , CronExpression FROM ScheduleTask")
 	if err != nil {
 		fmt.Printf("Cannot get schedule tasks! Err:%+v\n", err)
 		return nil, err
@@ -45,17 +44,15 @@ func GetScheduleTasks() ([]ScheduleTask, error) {
 
 	for rows.Next() {
 		var task ScheduleTask
-		if err := rows.Scan(&task.Id, &task.Name, &task.Enabled); err != nil {
-			fmt.Printf("Cannot get schedule tasks! Err:%+v\n", err)
+		if err := rows.Scan(&task.Id, &task.Name, &task.Enabled , &task.CronExpression); err != nil {
+			fmt.Printf("Cannot parse schedule tasks! Err:%+v\n", err)
 			return nil, err
 		}
-		task.CronExpression = "*/1 * * * *" // TODO get it from database
 		scheduleTasks = append(scheduleTasks, task)
 
 	}
 
 	if len(scheduleTasks) == 0 {
-		fmt.Printf("schedule task count is 0!\n")
 		return nil, errors.New("schedule task count is 0")
 	}
 	return scheduleTasks, nil
@@ -84,7 +81,6 @@ func DoTask(task ScheduleTask, conf config.AppConfig) {
 	response, err := http.PostJsonRequest(conf.StoreUrl+"/ScheduleTask/Run", string(jsonStr))
 
 	if err != nil {
-		fmt.Printf("error posting request! err:%+v\n", err)
 		UpdateTask(task.Id, false, false)
 		return
 	}
@@ -101,7 +97,7 @@ func DoTask(task ScheduleTask, conf config.AppConfig) {
 	err = json.Unmarshal([]byte(response.Data), &taskResponse)
 
 	if err != nil {
-		fmt.Printf("cannot parse response! err:%+v\n", err)
+		fmt.Printf("cannot parse json response! err:%+v\n", err)
 		UpdateTask(task.Id, false, false)
 		return
 	}
@@ -125,7 +121,6 @@ func UpdateTask(id int, start bool, ok bool) error {
 	db, err := database.OpenConnection()
 	defer database.CloseConnection(db)
 	if err != nil {
-		fmt.Printf("Cannot open db connection! Err:%+v\n", err)
 		return err
 	}
 
