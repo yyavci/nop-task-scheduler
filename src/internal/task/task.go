@@ -5,24 +5,20 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/yyavci/nop-task-scheduler/internal/config"
 	"github.com/yyavci/nop-task-scheduler/internal/database"
 	"github.com/yyavci/nop-task-scheduler/internal/http"
+	"github.com/yyavci/nop-task-scheduler/internal/store"
 )
 
 type ScheduleTask struct {
 	Id             int
 	Name           string
+	Type           string
 	Enabled        bool
 	CronExpression string
 }
-
-type ScheduleTaskRunResponse struct {
-	Success bool
-	Message string
-}
 type ScheduleTaskRunRequest struct {
-	TaskId int
+	TaskType string
 }
 
 func GetScheduleTasks() ([]ScheduleTask, error) {
@@ -35,7 +31,7 @@ func GetScheduleTasks() ([]ScheduleTask, error) {
 		return nil, err
 	}
 
-	rows, err := db.Query("SELECT Id , Name , Enabled , CronExpression FROM ScheduleTask")
+	rows, err := db.Query("SELECT Id , Name , Type, Enabled , ISNULL(CronExpression,'') FROM ScheduleTask")
 	if err != nil {
 		fmt.Printf("Cannot get schedule tasks! Err:%+v\n", err)
 		return nil, err
@@ -44,11 +40,13 @@ func GetScheduleTasks() ([]ScheduleTask, error) {
 
 	for rows.Next() {
 		var task ScheduleTask
-		if err := rows.Scan(&task.Id, &task.Name, &task.Enabled , &task.CronExpression); err != nil {
+		if err := rows.Scan(&task.Id, &task.Name, &task.Type, &task.Enabled, &task.CronExpression); err != nil {
 			fmt.Printf("Cannot parse schedule tasks! Err:%+v\n", err)
 			return nil, err
 		}
-		scheduleTasks = append(scheduleTasks, task)
+		if task.Enabled && len(task.CronExpression) > 0 {
+			scheduleTasks = append(scheduleTasks, task)
+		}
 
 	}
 
@@ -58,8 +56,8 @@ func GetScheduleTasks() ([]ScheduleTask, error) {
 	return scheduleTasks, nil
 }
 
-func DoTask(task ScheduleTask, conf config.AppConfig) {
-	fmt.Printf("[%d]'%s' task started. \n", task.Id, task.Name)
+func DoTask(task ScheduleTask, store store.Store) {
+	fmt.Printf("[%d]'%s' task for store '%s' started. \n", task.Id, task.Name, store.Name)
 
 	err := UpdateTask(task.Id, true, false)
 	if err != nil {
@@ -68,7 +66,7 @@ func DoTask(task ScheduleTask, conf config.AppConfig) {
 		return
 	}
 
-	request := &ScheduleTaskRunRequest{TaskId: task.Id}
+	request := &ScheduleTaskRunRequest{TaskType: task.Type}
 
 	jsonStr, err := json.Marshal(request)
 	if err != nil {
@@ -77,8 +75,7 @@ func DoTask(task ScheduleTask, conf config.AppConfig) {
 		return
 	}
 
-	fmt.Println(conf.StoreUrl)
-	response, err := http.PostJsonRequest(conf.StoreUrl+"/ScheduleTask/Run", string(jsonStr))
+	response, err := http.PostJsonRequest(store.Url+"ScheduleTask/RunTask", string(jsonStr))
 
 	if err != nil {
 		UpdateTask(task.Id, false, false)
@@ -88,22 +85,6 @@ func DoTask(task ScheduleTask, conf config.AppConfig) {
 
 	if response.StatusCode < 200 || response.StatusCode > 400 {
 		fmt.Printf("error posting request! err:%s\n", errors.New("response error"))
-		UpdateTask(task.Id, false, false)
-		return
-	}
-
-	var taskResponse ScheduleTaskRunResponse
-
-	err = json.Unmarshal([]byte(response.Data), &taskResponse)
-
-	if err != nil {
-		fmt.Printf("cannot parse json response! err:%+v\n", err)
-		UpdateTask(task.Id, false, false)
-		return
-	}
-
-	if !taskResponse.Success {
-		fmt.Printf("failed response! message:%s\n", taskResponse.Message)
 		UpdateTask(task.Id, false, false)
 		return
 	}

@@ -18,5 +18,5 @@
 go.work
 
 # project specific
-# environment exec script
-env.sh
+# environment file
+.env

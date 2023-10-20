@@ -2,14 +2,12 @@ package config
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"os"
 )
 
 type AppConfig struct {
-	StoreUrl         string
 	ConnectionString string
 }
 
@@ -37,10 +35,6 @@ func ReadConfiguration() (*AppConfig, error) {
 	if err != nil {
 		fmt.Printf("Error occured parsing json file! Err:%+v\n", err)
 		return nil, err
-	}
-
-	if len(appConfig.StoreUrl) == 0 {
-		return nil, errors.New("store url is empty")
 	}
 
 	return appConfig, nil
