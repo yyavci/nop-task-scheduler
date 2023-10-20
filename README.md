@@ -8,9 +8,6 @@ this is my *"hello world"* app for go language. (for nopcommerce 4.2. might work
 - return at the beginning of your *"Nop.Services/Tasks/TaskManager.Initialize()"* method like below. (or make it configurable)
 ```csharp
 
-/// <summary>
-/// Initializes the task manager
-/// </summary>
 public void Initialize()
 {
     //here
