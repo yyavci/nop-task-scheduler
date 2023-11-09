@@ -11,11 +11,11 @@ type AppConfig struct {
 	ConnectionString string
 }
 
-func ReadConfiguration() (*AppConfig, error) {
+func ReadConfiguration(file string) (*AppConfig, error) {
 
 	fmt.Println("reading configuration...")
 
-	jsonFile, err := os.Open("config.json")
+	jsonFile, err := os.Open(file)
 	if err != nil {
 		fmt.Printf("Error occured opening config file! Err:%+v\n", err)
 		return nil, err

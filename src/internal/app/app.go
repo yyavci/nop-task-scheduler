@@ -17,7 +17,7 @@ var schedule *gocron.Scheduler
 func Run() {
 	fmt.Println("app started")
 
-	conf, err := config.ReadConfiguration()
+	conf, err := config.ReadConfiguration("config.json")
 	if err != nil {
 		panic(err)
 	}
