@@ -9,19 +9,27 @@ import (
 func TestReadConfiguration(t *testing.T) {
 
 	tests := map[string]struct {
-		expectedErr	error
+		configPath    string
+		errorExpected bool
+		resultNil     bool
 	}{
 		"happy case": {
-			expectedErr: nil,
+			configPath:    "../../config.json",
+			errorExpected: false,
+			resultNil:     false,
+		},
+		"invalid config path": {
+			configPath:    "asd/config.json",
+			errorExpected: true,
+			resultNil:     true,
 		},
 	}
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			result,err := ReadConfiguration("../../config.json")
-
-			assert.NotNil(t,result)
-			assert.Equal(t,test.expectedErr,err)
+			result, err := ReadConfiguration(test.configPath)
+			assert.Equal(t, test.resultNil, result == nil)
+			assert.Equal(t, test.errorExpected, err != nil)
 		})
 	}
 }

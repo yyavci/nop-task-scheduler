@@ -28,9 +28,6 @@ func InitScheduler(tasks []task.ScheduleTask ,stores []store.Store) (*gocron.Sch
 
 	}
 
-
-	
-
 	sch.StartBlocking()
 
 	return sch, nil
