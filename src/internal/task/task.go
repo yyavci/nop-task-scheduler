@@ -10,6 +10,7 @@ import (
 	"github.com/yyavci/nop-task-scheduler/internal/store"
 )
 
+// structs
 type ScheduleTask struct {
 	Id             int
 	Name           string
@@ -20,6 +21,15 @@ type ScheduleTask struct {
 type ScheduleTaskRunRequest struct {
 	TaskType string
 }
+
+// errors
+var errCannotGetTasks = errors.New("cannot get schedule tasks")
+var errCannotParseTasks = errors.New("cannot parse schedule tasks")
+var errNoScheduleTasksFound = errors.New("no schedule tasks found")
+var errUpdateTaskStarted = errors.New("cannot update schedule task started")
+var errParseRequest = errors.New("cannot parse request")
+var errSendingRequest = errors.New("error posting request")
+var errTaskIdCannotZero = errors.New("task id cannot be zero")
 
 func GetScheduleTasks() ([]ScheduleTask, error) {
 
@@ -33,16 +43,16 @@ func GetScheduleTasks() ([]ScheduleTask, error) {
 
 	rows, err := db.Query("SELECT Id , Name , Type, Enabled , ISNULL(CronExpression,'') FROM ScheduleTask")
 	if err != nil {
-		fmt.Printf("Cannot get schedule tasks! Err:%+v\n", err)
-		return nil, err
+		fmt.Printf("error:cannot get schedule tasks! err:%+v\n %+v\n", errCannotGetTasks, err)
+		return nil, errCannotGetTasks
 	}
 	var scheduleTasks []ScheduleTask
 
 	for rows.Next() {
 		var task ScheduleTask
 		if err := rows.Scan(&task.Id, &task.Name, &task.Type, &task.Enabled, &task.CronExpression); err != nil {
-			fmt.Printf("Cannot parse schedule tasks! Err:%+v\n", err)
-			return nil, err
+			fmt.Printf("error:cannot parse schedule tasks! err:%+v\n %+v\n", errCannotParseTasks, err)
+			return nil, errCannotParseTasks
 		}
 		if task.Enabled && len(task.CronExpression) > 0 {
 			scheduleTasks = append(scheduleTasks, task)
@@ -51,7 +61,8 @@ func GetScheduleTasks() ([]ScheduleTask, error) {
 	}
 
 	if len(scheduleTasks) == 0 {
-		return nil, errors.New("schedule task count is 0")
+		fmt.Printf("error:no schedule tasks found! err:%+v\n", errNoScheduleTasksFound)
+		return nil, errNoScheduleTasksFound
 	}
 	return scheduleTasks, nil
 }
@@ -61,7 +72,7 @@ func DoTask(task ScheduleTask, store store.Store) {
 
 	err := UpdateTask(task.Id, true, false)
 	if err != nil {
-		fmt.Printf("error updating task! err:%+v\n", err)
+		fmt.Printf("error:error updating task started! err:%+v\n %+v\n", errUpdateTaskStarted, err)
 		UpdateTask(task.Id, false, false)
 		return
 	}
@@ -70,7 +81,7 @@ func DoTask(task ScheduleTask, store store.Store) {
 
 	jsonStr, err := json.Marshal(request)
 	if err != nil {
-		fmt.Printf("error parsing request! err:%+v\n", err)
+		fmt.Printf("error:error parsing request! err:%+v\n %+v\n", errParseRequest, err)
 		UpdateTask(task.Id, false, false)
 		return
 	}
@@ -84,7 +95,7 @@ func DoTask(task ScheduleTask, store store.Store) {
 	fmt.Printf("response status-code:%d status:%s", response.StatusCode, response.Status)
 
 	if response.StatusCode < 200 || response.StatusCode > 400 {
-		fmt.Printf("error posting request! err:%s\n", errors.New("response error"))
+		fmt.Printf("error:error posting request! err:%+v\n %+v\n", errSendingRequest, err)
 		UpdateTask(task.Id, false, false)
 		return
 	}
@@ -96,7 +107,8 @@ func DoTask(task ScheduleTask, store store.Store) {
 func UpdateTask(id int, start bool, ok bool) error {
 
 	if id == 0 {
-		return errors.New("id cannot be zero")
+		fmt.Printf("error:task id cannot be 0! err:%+v\n", errTaskIdCannotZero)
+		return errTaskIdCannotZero
 	}
 
 	db, err := database.OpenConnection()

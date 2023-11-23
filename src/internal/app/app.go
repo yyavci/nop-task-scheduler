@@ -8,38 +8,33 @@ import (
 	"github.com/yyavci/nop-task-scheduler/internal/scheduler"
 	"github.com/yyavci/nop-task-scheduler/internal/store"
 	"github.com/yyavci/nop-task-scheduler/internal/task"
-
-	"github.com/go-co-op/gocron"
 )
-
-var schedule *gocron.Scheduler
 
 func Run() {
 	fmt.Println("app started")
 
 	conf, err := config.ReadConfiguration("config.json")
 	if err != nil {
-		panic(err)
+		return
 	}
 
 	err = database.Init(*conf)
 	if err != nil {
-		panic(err)
+		return
 	}
 
 	tasks, err := task.GetScheduleTasks()
 	if err != nil {
-		panic(err)
+		return
 	}
 
 	stores, err := store.GetStores()
 	if err != nil {
-		panic(err)
+		return
 	}
 
-	sch, err := scheduler.InitScheduler(tasks, stores)
+	_, err = scheduler.InitScheduler(tasks, stores)
 	if err != nil {
-		panic(err)
+		return
 	}
-	schedule = sch
 }
